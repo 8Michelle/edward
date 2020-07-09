@@ -1,6 +1,6 @@
 from aiogram import types
 from core import dp, States
-from help_func import make_start_keyword
+from help_func import make_start_keyword, make_tasks_keyboard
 import os
 import json
 
@@ -27,13 +27,14 @@ async def tasks(message):
         with open(filename, 'r') as f:
             data = json.load(f)
 
-    poll_keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
     if len(data['name']) == len(data['end']):
-        poll_keyboard.add(types.KeyboardButton(text="Получить данные"))
-        poll_keyboard.add(types.KeyboardButton(text="Начать новую сессию"))
+        # poll_keyboard.add(types.KeyboardButton(text="Получить данные"))
+        # poll_keyboard.add(types.KeyboardButton(text="Начать новую сессию"))
         message_text = "Чем займетесь?"
+        poll_keyboard = make_tasks_keyboard()
     else:
         message_text = f"Сейчас вы заняты: {data['name'][-1]}"
+        poll_keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
         poll_keyboard.add(types.KeyboardButton(text="Завершить"))
-    poll_keyboard.add(types.KeyboardButton(text="Назад"))
+        poll_keyboard.add(types.KeyboardButton(text="Назад"))
     await message.answer(message_text, reply_markup=poll_keyboard)

@@ -23,11 +23,14 @@ def make_skills_keyboard():
     poll_keyboard.add(types.KeyboardButton(text="Назад"))
     return poll_keyboard
 
+
 def make_tasks_keyboard():
     poll_keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
     poll_keyboard.add(types.KeyboardButton(text="Получить данные"))
+    poll_keyboard.add(types.KeyboardButton(text="Сколько я сегодня поработал?"))
     poll_keyboard.add(types.KeyboardButton(text="Начать новую сессию"))
     poll_keyboard.add(types.KeyboardButton(text="Назад"))
+    return poll_keyboard
 
 
 def start_task(name, user):
@@ -134,8 +137,3 @@ def prepare_tasks_csv(user):
     df -= pd.to_datetime(0)
     df.sort_index()
     df.to_csv(f"{user}_tasks.csv")
-
-
-def time_today(user):
-    filename_csv = f"{user}_tasks.csv"
-    filename_s = f'{user}_tasks_s.json'

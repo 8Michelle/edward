@@ -1,7 +1,7 @@
 from aiogram import types
 from core import dp, States, bot, TOKEN
 from help_func import end_task, start_task, make_skills_keyboard,\
-    new_session, prepare_tasks_doc, make_tasks_keyboard
+    new_session, prepare_tasks_doc, make_tasks_keyboard, prepare_tasks_csv
 import pandas as pd
 
 
@@ -52,7 +52,7 @@ async def new_session_handler(message):
                     state=States.S_TASKS)
 async def time_today_handler(message):
     user = message.chat.id
-    if prepare_tasks_doc(user) == 1:
+    if prepare_tasks_csv(user) == 1:
         await message.answer("Судя по моим данным, у вас еще не было активности.")
     else:
         df = pd.read_csv(f"{user}_tasks.csv")
