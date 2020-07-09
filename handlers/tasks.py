@@ -35,12 +35,15 @@ async def download_tasks_handler(message):
                     state=States.S_TASKS)
 async def new_session_handler(message):
     user = message.chat.id
-    new_session(user)
+    if new_session(user) == 1:
+        message_text = "День еще не закончился. Для начала дела введите его название"
+    else:
+        message_text = "Начата новая сессия. Чем хотите заняться?"
     poll_keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
     poll_keyboard.add(types.KeyboardButton(text="Получить данные"))
     poll_keyboard.add(types.KeyboardButton(text="Начать новую сессию"))
     poll_keyboard.add(types.KeyboardButton(text="Назад"))
-    await message.answer("Начата новая сессия. Чем хотите заняться?",
+    await message.answer(message_text,
                          reply_markup=poll_keyboard)
 
 

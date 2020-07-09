@@ -53,13 +53,14 @@ def new_session(user):
     else:
         with open(filename_s, 'r') as f:
             data_s = json.load(f)
+    if data_s['date'] == new_date:
+        return 1
 
     data_s['date'] = new_date
     data_s[new_date] = defaultdict(int)
-
     with open(filename_s, 'w') as f:
         json.dump(data_s, f)
-
+    return 0
 
 def end_task(user):
     filename_s = f'{user}_tasks_s.json'
