@@ -23,6 +23,12 @@ def make_skills_keyboard():
     poll_keyboard.add(types.KeyboardButton(text="Назад"))
     return poll_keyboard
 
+def make_tasks_keyboard():
+    poll_keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    poll_keyboard.add(types.KeyboardButton(text="Получить данные"))
+    poll_keyboard.add(types.KeyboardButton(text="Начать новую сессию"))
+    poll_keyboard.add(types.KeyboardButton(text="Назад"))
+
 
 def start_task(name, user):
     filename = f'{user}_tasks.json'
@@ -111,3 +117,25 @@ def prepare_tasks_doc(user):
     df -= pd.to_datetime(0)
     df.to_excel(f'{user}_tasks.xlsx', index=True)
     return 0
+
+
+def prepare_tasks_csv(user):
+    filename_s = f'{user}_tasks_s.json'
+    if filename_s not in os.listdir():
+        return 1
+    with open(filename_s, 'r') as f:
+        data_s = json.load(f)
+
+    data_s.pop("date")
+    df = pd.DataFrame(data_s).T.fillna(0)
+    df['sum'] = df.sum(axis=1)
+    for column in df.columns:
+        df[column] = pd.to_datetime(df[column], unit='s')
+    df -= pd.to_datetime(0)
+    df.sort_index()
+    df.to_csv(f"{user}_tasks.csv")
+
+
+def time_today(user):
+    filename_csv = f"{user}_tasks.csv"
+    filename_s = f'{user}_tasks_s.json'
