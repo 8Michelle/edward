@@ -28,6 +28,7 @@ def make_tasks_keyboard():
     poll_keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
     poll_keyboard.add(types.KeyboardButton(text="Получить данные"))
     poll_keyboard.add(types.KeyboardButton(text="Сколько я сегодня поработал?"))
+    poll_keyboard.add(types.KeyboardButton(text="Построить график"))
     poll_keyboard.add(types.KeyboardButton(text="Начать новую сессию"))
     poll_keyboard.add(types.KeyboardButton(text="Назад"))
     return poll_keyboard
