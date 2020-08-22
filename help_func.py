@@ -8,7 +8,7 @@ from collections import defaultdict
 import pandas as pd
 
 
-def make_start_keyword():
+def make_start_keyboard():
     poll_keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
     poll_keyboard.add(types.KeyboardButton(text="Что ты умеешь?"))
     poll_keyboard.add(types.KeyboardButton(text="Кто тебя создал?"))
@@ -26,21 +26,63 @@ def make_skills_keyboard():
 
 def make_tasks_keyboard():
     poll_keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    poll_keyboard.add(types.KeyboardButton(text="Получить данные"))
-    poll_keyboard.add(types.KeyboardButton(text="Сколько я сегодня поработал?"))
-    poll_keyboard.add(types.KeyboardButton(text="Построить график"))
+    poll_keyboard.add(types.KeyboardButton(text="Начать дело"))
     poll_keyboard.add(types.KeyboardButton(text="Начать новую сессию"))
+    poll_keyboard.add(types.KeyboardButton(text="Сколько я сегодня поработал?"))
+    poll_keyboard.add(types.KeyboardButton(text="Получить данные"))
+    # poll_keyboard.add(types.KeyboardButton(text="Построить график"))
     poll_keyboard.add(types.KeyboardButton(text="Назад"))
     return poll_keyboard
 
 
-def start_task(name, user):
+def make_new_session_keyboard():
+    poll_keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    poll_keyboard.add(types.KeyboardButton(text="Все верно"))
+    poll_keyboard.add(types.KeyboardButton(text="Назад"))
+    return poll_keyboard
+
+
+def make_busy_keyboard():
+    poll_keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    poll_keyboard.add(types.KeyboardButton(text="Завершить"))
+    poll_keyboard.add(types.KeyboardButton(text="Назад"))
+    return poll_keyboard
+
+
+def make_begin_task_keyboard(user):
+    filename = f'{user}_tasks.json'
+    poll_keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    poll_keyboard.add(types.KeyboardButton(text="Назад"))
+    if filename in os.listdir():
+        with open(f"{user}_tasks.json") as f:
+            data = json.load(f)
+        names = set()
+        for name in data["name"][::-1]:
+            if len(names) < 5:
+                names.add(name)
+            else:
+                break
+        for name in names:
+            poll_keyboard.add(types.KeyboardButton(text=name))
+
+    return poll_keyboard
+
+
+#-----------------Обработчики--------------------
+
+# user_tasks.json - списки названий, времен начала, окончания и длительности дел
+# user_tasks_s.json - матрица дела-дни, содержит время занятия определнным делом в определенный день
+
+
+def start_task(name, user): # фиксирует в файле user_tasks.json название дела и время начала
     filename = f'{user}_tasks.json'
     if filename not in os.listdir():
-        data = {'name': [],
-                'start': [],
-                'end': [],
-                'time': []}
+        data = {
+            'name': [],
+            'start': [],
+            'end': [],
+            'time': []
+        }
     else:
         with open(filename, 'r') as f:
             data = json.load(f)
@@ -52,52 +94,29 @@ def start_task(name, user):
         json.dump(data, f)
 
 
-def new_session(user):
-    new_date = datetime.date.today().isoformat()
-    filename_s = f'{user}_tasks_s.json'
-    if filename_s not in os.listdir():
-        data_s = {
-            "date": new_date,
-            new_date: defaultdict(int)
-        }
-    else:
-        with open(filename_s, 'r') as f:
-            data_s = json.load(f)
-    if data_s['date'] == new_date:
-        return 1
-
-    data_s['date'] = new_date
-    data_s[new_date] = defaultdict(int)
-    with open(filename_s, 'w') as f:
-        json.dump(data_s, f)
-    return 0
-
 def end_task(user):
-    filename_s = f'{user}_tasks_s.json'
-    if filename_s not in os.listdir():
-        date = datetime.date.today().isoformat()
-        data_s = {
-            "date": date,
-            date: defaultdict(int)
-        }
-    else:
-        with open(filename_s, 'r') as f:
-            data_s = json.load(f)
-        date = data_s['date']
 
+    # извлекаем список всех дел
+    timestamp = time.mktime(datetime.datetime.now().timetuple())
     filename = f'{user}_tasks.json'
     with open(filename, 'r') as f:
         data = json.load(f)
 
-    timestamp = time.mktime(datetime.datetime.now().timetuple())
+    # находим в нем последнее дело, закрываем его end, считаем интервал,
+    # запоминаем имя и пишем обратно в файл. Больше data не меняется.
+    name = data["name"][-1]
+    time_int = timestamp - data['start'][-1]
     data['end'].append(timestamp)
-    data['time'].append(timestamp - data['start'][-1])
+    data['time'].append(time_int)
     with open(filename, 'w') as f:
         json.dump(data, f)
 
-    name = data['name'][-1]
-    time_int = data['time'][-1]
-    # print(name, date)
+    # извлекаем файл с матрицей. Предварительный вызов new_session гарантирует его наличие
+    filename_s = f'{user}_tasks_s.json'
+    with open(filename_s, 'r') as f:
+        data_s = json.load(f)
+    date = max(data_s)
+
     if name in data_s[date]:
         data_s[date][name] += time_int
     else:
@@ -106,6 +125,24 @@ def end_task(user):
         json.dump(data_s, f)
 
 
+def new_session(user, date): # добавляет новую дневную запись в файл user_tasks_s.json
+
+    filename_s = f'{user}_tasks_s.json'
+    if filename_s not in os.listdir():
+        data_s = {
+            date: defaultdict(int)
+        }
+    else:
+        with open(filename_s, 'r') as f:
+            data_s = json.load(f)
+            data_s[date] = defaultdict(int)
+
+    with open(filename_s, 'w') as f:
+        json.dump(data_s, f)
+
+
+#-------------------Обработка данных----------------------
+
 def prepare_tasks_doc(user):
     filename_s = f'{user}_tasks_s.json'
     if filename_s not in os.listdir():
@@ -113,28 +150,28 @@ def prepare_tasks_doc(user):
     with open(filename_s, 'r') as f:
         data_s = json.load(f)
 
-    data_s.pop("date")
     df = pd.DataFrame(data_s).T.fillna(0)
     df['sum'] = df.sum(axis=1)
     for column in df.columns:
         df[column] = pd.to_datetime(df[column], unit='s')
     df -= pd.to_datetime(0)
     df.to_excel(f'{user}_tasks.xlsx', index=True)
+
     return 0
 
 
-def prepare_tasks_csv(user):
+def get_working_time(user):
     filename_s = f'{user}_tasks_s.json'
     if filename_s not in os.listdir():
-        return 1
+        return "00:00:00"
+
     with open(filename_s, 'r') as f:
         data_s = json.load(f)
-
-    data_s.pop("date")
     df = pd.DataFrame(data_s).T.fillna(0)
     df['sum'] = df.sum(axis=1)
     for column in df.columns:
         df[column] = pd.to_datetime(df[column], unit='s')
     df -= pd.to_datetime(0)
     df.sort_index()
-    df.to_csv(f"{user}_tasks.csv")
+
+    return str(df.iloc[-1, :]['sum']).split()[-1].split(':')[:-1]

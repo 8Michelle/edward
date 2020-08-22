@@ -11,9 +11,16 @@ bot = Bot(token=TOKEN)
 dp = Dispatcher(bot, storage=MemoryStorage())
 dp.middleware.setup(LoggingMiddleware())
 
+
 class States(StatesGroup):
-    S_START = State()
-    S_CHOOSE_SKILL = State()
-    S_TASKS = State()
+    # S_START = State()
+    # S_CHOOSE_SKILL = State()
+    # S_TASKS = State()
+    START = State()
+    SKILLS = State()
+    TASKS = State()
+    BEGIN_TASK = State()
+    NEW_SESSION = State()
+
 
 SKILLS = ['Дела']
