@@ -2,7 +2,7 @@ from aiogram import types
 from core import dp, States, bot, TOKEN
 from help_func import end_task, start_task, make_skills_keyboard,\
     new_session, prepare_tasks_doc, make_tasks_keyboard, make_new_session_keyboard,\
-    make_busy_keyboard, make_begin_task_keyboard, get_working_time
+    make_busy_keyboard, make_begin_task_keyboard, get_working_time, check_date
 import datetime
 import pandas as pd
 
@@ -83,6 +83,15 @@ async def begin_task_start_handler(message):
     await dp.current_state(user=user).set_state(States.TASKS)
     message_text = f"Сейчас вы заняты: {message.text}"
     await message.answer(message_text, reply_markup=make_busy_keyboard())
+
+
+@dp.message_handler(lambda message: message.text == "Какое сегодня число?",
+                    state=States.TASKS)
+async def check_date_handler(message):
+    user = message.chat.id
+    date = check_date(user=user)
+    message_text = f"Активная дата: {date}"
+    await message.answer(message_text, reply_markup=make_tasks_keyboard())
 
 
 # --------------------- Обработка данных ---------------------------

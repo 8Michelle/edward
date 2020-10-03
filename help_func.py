@@ -27,6 +27,7 @@ def make_skills_keyboard():
 def make_tasks_keyboard():
     poll_keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
     poll_keyboard.add(types.KeyboardButton(text="Начать дело"))
+    poll_keyboard.add(types.KeyboardButton(text="Какое сегодня число?"))
     poll_keyboard.add(types.KeyboardButton(text="Начать новую сессию"))
     poll_keyboard.add(types.KeyboardButton(text="Сколько я сегодня поработал?"))
     poll_keyboard.add(types.KeyboardButton(text="Получить данные"))
@@ -139,6 +140,19 @@ def new_session(user, date): # добавляет новую дневную за
 
     with open(filename_s, 'w') as f:
         json.dump(data_s, f)
+
+
+def check_date(user): # возвращает последнюю дату для пользователя user
+
+    filename_s = f"{user}_tasks_s.json"
+    if filename_s not in os.listdir():
+        return
+    else:
+        with open(filename_s, 'r') as f:
+            data_s = json.load(f)
+
+    date = max(data_s)
+    return date
 
 
 #-------------------Обработка данных----------------------
