@@ -1,23 +1,79 @@
 # -*- coding: utf-8 -*-
+"""This module contains handlers for tasks.
+
+Task interface supports starting a new task and ending current one,
+starting new session, checking today working time, current date and all data.
+"""
+
 from aiogram import types
+import datetime
+
 from core import dp, States, bot, KEYBOARDS
-# from tools import make_keyboard, get_tasks_list, end_task, start_task,\
-#     new_session, prepare_tasks_doc, get_working_time, check_date
 from tools import tasks
 from tools.keyboard import make_keyboard
-import datetime
+
+
+@dp.message_handler(lambda message: message.text == "Начать дело",
+                    state=States.TASKS)
+async def begin_task_handler(message):
+    """Handles the start of a new task.
+
+    Switches the state from TASKS to BEGIN_TASK.
+
+    Creates begin task keyboard. Works with free task mode.
+
+    """
+    user = message.chat.id
+    await dp.current_state(user=user).set_state(States.BEGIN_TASK)
+
+    buttons = list(tasks.get_tasks_list(user))
+    buttons.append("Назад")
+
+    await message.answer("Чем займетесь?",
+                         reply_markup=make_keyboard(buttons))
+
+
+@dp.message_handler(state=States.BEGIN_TASK)
+async def begin_task_start_handler(message):
+    """Handles the beginning of the new task with ``message`` name.
+
+    Switches the state from BEGIN_TASK to TASKS.
+
+    Creates busy task keyboard.
+
+    """
+    user = message.chat.id
+    tasks.start_task(message.text, user)
+    await dp.current_state(user=user).set_state(States.TASKS)
+
+    message_text = f"Сейчас вы заняты: {message.text}"
+    await message.answer(message_text,
+                         reply_markup=make_keyboard(KEYBOARDS["busy_tasks"]))
+
+
+@dp.message_handler(lambda message: message.text == "Назад",
+                    state=States.BEGIN_TASK)
+async def begin_task_revert_handler(message):
+    """Handles a return to the tasks from the beginning a new task.
+
+    Switches the state from BEGIN_TASK to TASKS.
+
+    Creates free task keyboard.
+
+    """
+    await dp.current_state(user=message.chat.id).set_state(States.TASKS)
+    await message.answer("Сейчас вы ничем не заняты",
+                         reply_markup=make_keyboard(KEYBOARDS["free_tasks"]))
 
 
 @dp.message_handler(lambda message: message.text == "Завершить",
                     state=States.TASKS)
 async def end_task_handler(message):
-    """Handles stop message. Creates tasks keyboard.
-    Using with busy mode.
-    Corresponds to the TASKS state.
-    Allows to go to task functions.
+    """Handles the end of the current task.
 
-    Args:
-        message (types.message.Message): stop task message.
+    Corresponds to the TASKS state.
+
+    Creates free task keyboard. Works with busy task mode.
 
     """
     tasks.end_task(message.chat.id)
@@ -26,34 +82,14 @@ async def end_task_handler(message):
                          reply_markup=make_keyboard(KEYBOARDS["free_tasks"]))
 
 
-@dp.message_handler(lambda message: message.text == "Назад",
-                    state=States.TASKS)
-async def tasks_revert_handler(message):
-    """Handles returning to the SKILLS state.
-    Creates a skills keyboard.
-    Corresponds to the TASKS state.
-    Allows to go to all the bot skills.
-
-    Args:
-        message (types.message.Message): returning message.
-
-    """
-    await dp.current_state(user=message.chat.id).set_state(States.SKILLS)
-
-    await message.answer("Выберите функцию",
-                         reply_markup=make_keyboard(KEYBOARDS["skills"]))
-
-
 @dp.message_handler(lambda message: message.text == "Начать новую сессию",
                     state=States.TASKS)
 async def new_session_handler(message):
-    """Handles a new session message.
-    Starts a date check. switches the state to NEW_SESSION.
-    Creates a new session keyboard.
-    You can choose new session with automatically set date or with custom date.
+    """Handles a new session starting.
 
-    Args:
-        message (types.message.Message): new session message.
+    Switches the state from TASKS to NEW_SESSION.
+
+    Creates new session keyboard. Works with free task mode.
 
     """
     user = message.chat.id
@@ -67,12 +103,11 @@ async def new_session_handler(message):
 @dp.message_handler(lambda message: message.text == "Все верно",
                     state=States.NEW_SESSION)
 async def new_session_submit_handler(message):
-    """Handles confirmation of a new session date.
-    Switches the state to TASKS. Starts new session.
-    Creates tasks keyboard. Allows to go to task functions.
+    """Handles session date confirmation.
 
-    Args:
-        message (types.message.Message): new session confirmation message.
+    Switches the state from NEW_SESSION to TASKS.
+
+    Creates free task keyboard.
 
     """
     user = message.chat.id
@@ -85,32 +120,13 @@ async def new_session_submit_handler(message):
                          reply_markup=make_keyboard(KEYBOARDS["free_tasks"]))
 
 
-@dp.message_handler(lambda message: message.text == "Назад",
-                    state=States.NEW_SESSION)
-async def new_session_revert_handler(message):
-    """Handles returning to the TASKS state.
-    Corresponds to the NEW_SESSION state.
-    Switches the state to TASKS.
-    Creates tasks keyboard. Allows to go to task functions.
-
-    Args:
-        message (types.message.Message): tasks returning message.
-
-    """
-    await dp.current_state(user=message.chat.id).set_state(States.TASKS)
-
-    await message.answer("Сейчас вы ничем не заняты.",
-                         reply_markup=make_keyboard(KEYBOARDS["free_tasks"]))
-
-
 @dp.message_handler(state=States.NEW_SESSION)
 async def new_session_date_handler(message):
-    """Handles message with custom session date.
-    Switches the state to TASKS. Creates tasks keyboard.
-    Allows to go to task functions.
+    """Handles the start of a new session with a custom date.
 
-    Args:
-        message (types.message.Message): custom date message.
+    Switches the state from NEW_SESSION to TASKS.
+
+    Creates free tasks keyboard.
 
     """
     user = message.chat.id
@@ -122,66 +138,30 @@ async def new_session_date_handler(message):
                          reply_markup=make_keyboard(KEYBOARDS["free_tasks"]))
 
 
-@dp.message_handler(lambda message: message.text == "Начать дело", state=States.TASKS)
-async def begin_task_handler(message):
-    """Handles starting a new task.
-    Switches the state to BEGIN_TASK.
-    Creates begin tasks keyboard.
+@dp.message_handler(lambda message: message.text == "Назад",
+                    state=States.NEW_SESSION)
+async def new_session_revert_handler(message):
+    """Handles a return to the tasks from the starting a new session.
 
-    Args:
-        message (types.message.Message): new task message.
+    Switches the state from NEW_SESSION to TASKS.
 
-    """
-    user = message.chat.id
-    await dp.current_state(user=user).set_state(States.BEGIN_TASK)
-
-    buttons = list(tasks.get_tasks_list(user))
-    buttons.append("Назад")
-
-    await message.answer("Чем займетесь?",
-                         reply_markup=make_keyboard(buttons))
-
-
-@dp.message_handler(lambda message: message.text == "Назад", state=States.BEGIN_TASK)
-async def begin_task_revert_handler(message):
-    """Handles returning to the TASKS state from starting new task.
-    Switches the state to TASKS. Creates tasks keyboard.
-
-    Args:
-        message (types.message.Message): returning message.
+    Creates free task keyboard.
 
     """
     await dp.current_state(user=message.chat.id).set_state(States.TASKS)
-    await message.answer("Сейчас вы ничем не заняты",
-                         reply_markup=make_keyboard(KEYBOARDS["tasks"]))
 
-
-@dp.message_handler(state=States.BEGIN_TASK)
-async def begin_task_start_handler(message):
-    """Handles new task beginning.
-    Switches the state to TASKS.
-    Creates busy keyboard.
-
-    Args:
-        message (types.message.Message): message with new task name.
-
-    """
-    user = message.chat.id
-    tasks.start_task(message.text, user)
-    await dp.current_state(user=user).set_state(States.TASKS)
-
-    message_text = f"Сейчас вы заняты: {message.text}"
-    await message.answer(message_text,
-                         reply_markup=make_keyboard(KEYBOARDS["busy_tasks"]))
+    await message.answer("Сейчас вы ничем не заняты.",
+                         reply_markup=make_keyboard(KEYBOARDS["free_tasks"]))
 
 
 @dp.message_handler(lambda message: message.text == "Какое сегодня число?",
                     state=States.TASKS)
 async def check_date_handler(message):
-    """Handles a date request.
+    """Answers a question about the current date.
 
-    Args:
-        message (types.message.Message): message with date request.
+    Corresponds to the TASKS state.
+
+    Works with free mode.
 
     """
     user = message.chat.id
@@ -195,11 +175,11 @@ async def check_date_handler(message):
 @dp.message_handler(lambda message: message.text == "Получить данные",
                     state=States.TASKS)
 async def download_tasks_handler(message):
-    """Handles data request.
-    Sends .xlsx document with tasks data.
+    """Handles a data request.
 
-    Args:
-        message (types.message.Message): message with data request.
+    Corresponds to the TASKS state.
+
+    Sends a .xlsx data file. Works with free mode.
 
     """
     user = message.chat.id
@@ -214,12 +194,29 @@ async def download_tasks_handler(message):
 @dp.message_handler(lambda message: message.text == "Сколько я сегодня поработал?",
                     state=States.TASKS)
 async def time_today_handler(message):
-    """Handles today's working time request.
+    """Handles a question of today working time.
 
-    Args:
-        message (types.message.Message): message with today's working time request.
+    Corresponds to the TASKS state.
+
+    Sends text message with today working time. Works with free mode.
 
     """
     user = message.chat.id
     time_today = tasks.get_working_time(user)
     await message.answer(f"Сегодня вы проработали {time_today[0]} часов {time_today[1]} минут")
+
+
+@dp.message_handler(lambda message: message.text == "Назад",
+                    state=States.TASKS)
+async def tasks_revert_handler(message):
+    """Handles a return to the skills from the tasks.
+
+    Switches the state from TASKS to SKILLS.
+
+    Creates skill keyboard. Works with both modes.
+
+    """
+    await dp.current_state(user=message.chat.id).set_state(States.SKILLS)
+
+    await message.answer("Выберите функцию",
+                         reply_markup=make_keyboard(KEYBOARDS["skills"]))

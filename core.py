@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+"""This module contains main bot structure and configuration.
+
+There are logger settings, dispatcher, bot, states machine,
+skills list and their parameters.
+
+"""
 import logging
 from aiogram import Bot, Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -14,9 +20,8 @@ dp.middleware.setup(LoggingMiddleware())
 
 
 class States(StatesGroup):
-    # S_START = State()
-    # S_CHOOSE_SKILL = State()
-    # S_TASKS = State()
+    """This class realizes a state machine for the bot."""
+
     START = State()
     SKILLS = State()
     TASKS = State()

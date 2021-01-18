@@ -1,40 +1,28 @@
 # -*- coding: utf-8 -*-
+"""This module contains handlers for bot skills.
+
+Now there are only tasks here.
+"""
+
 from aiogram import types
-from static import message_start
-from core import dp, States, KEYBOARDS
-from tools.keyboard import make_keyboard
 import os
 import json
 
-
-@dp.message_handler(lambda message: message.text == "Назад",
-                    state=States.SKILLS)
-async def skills_revert_handler(message):
-    """Handles returning to the START state from SKILLS.
-    Corresponds to the SKILLS state.
-    Creates keyboard with starts questions.
-
-    Args:
-        message (types.Message.message): returning message.
-
-    """
-    await dp.current_state(user=message.chat.id).set_state(States.START)
-
-    await message.answer(message_start,
-                         reply_markup=make_keyboard(KEYBOARDS["start"]))
+from static import message_start
+from core import dp, States, KEYBOARDS
+from tools.keyboard import make_keyboard
 
 
 @dp.message_handler(lambda message: message.text == "Дела",
                     state=States.SKILLS)
 async def tasks_handler(message):
-    """Handles tasks message.
-    Switches the state to TASKS.
-    Creates empty tasks file if it doesn't exist.
-    Creates busy or tasks keyboard. Corresponds to the SKILLS state.
-    Allows to go to all the task functions or busy-returning function.
+    """Handles switching to tasks.
 
-    Args:
-        message (types.Message.message): tasks message.
+    Switches the state from SKILLS to TASKS.
+
+    Creates empty tasks file if it doesn't exist.
+    Checks the task mode (free or busy) by the last entry.
+    Creates a keyboard (free or busy) with a task interface.
 
     """
     user = message.chat.id
@@ -61,3 +49,19 @@ async def tasks_handler(message):
         poll_keyboard = make_keyboard(KEYBOARDS["busy_tasks"])
 
     await message.answer(message_text, reply_markup=poll_keyboard)
+
+
+@dp.message_handler(lambda message: message.text == "Назад",
+                    state=States.SKILLS)
+async def skills_revert_handler(message):
+    """Handles a return to the start from the skills.
+
+    Switches the state from SKILLS to START.
+
+    Creates keyboard with all the start questions in free mode.
+
+    """
+    await dp.current_state(user=message.chat.id).set_state(States.START)
+
+    await message.answer(message_start,
+                         reply_markup=make_keyboard(KEYBOARDS["start"]))

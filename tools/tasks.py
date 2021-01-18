@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+"""This module contains functions for working with tasks and their files."""
+
 import json
 import time
 import datetime

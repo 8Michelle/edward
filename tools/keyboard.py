@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+"""This module contains functions for bot keyboards."""
+
 from aiogram import types
 
 
