@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import logging
 from aiogram import Bot, Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -24,3 +25,18 @@ class States(StatesGroup):
 
 
 SKILLS = ['Дела']
+
+
+KEYBOARDS = {
+    "start": ["Что ты умеешь?", "Кто тебя создал?", "Функции"],
+
+    "skills": SKILLS + ["Назад"],
+
+    "free_tasks": ["Начать дело", "Какое сегодня число?",
+                   "Начать новую сессию", "Сколько я сегодня поработал?",
+                   "Получить данные", "Назад"],
+
+    "busy_tasks": ["Завершить", "Назад"],
+
+    "new_session": ["Все верно", "Назад"]
+}
