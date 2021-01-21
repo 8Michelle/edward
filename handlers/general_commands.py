@@ -13,7 +13,7 @@ from static import message_skills, message_start, message_creator
 
 @dp.message_handler(commands=['start'])
 async def start_handler(message):
-    """Handles the /start command.
+    """Handle the /start command.
 
     Switches the state to START.
 
@@ -30,7 +30,7 @@ async def start_handler(message):
 @dp.message_handler(lambda message: message.text == "Что ты умеешь?",
                     state=States.START)
 async def skills_about_handler(message):
-    """Answers a question about bot skills.
+    """Answer a question about bot skills.
 
     Corresponds to the START state.
 
@@ -41,7 +41,7 @@ async def skills_about_handler(message):
 @dp.message_handler(lambda message: message.text == "Кто тебя создал?",
                     state=States.START)
 async def creator(message):
-    """Answers a question about bot creator.
+    """Answer a question about bot creator.
 
     Corresponds to the START state.
 
@@ -52,7 +52,7 @@ async def creator(message):
 @dp.message_handler(lambda message: message.text == "Функции",
                     state=States.START)
 async def skills_handler(message):
-    """Handles switching to skills.
+    """Handle switching to skills.
 
     Switches the state from START to SKILLS.
 

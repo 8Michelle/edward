@@ -16,12 +16,11 @@ from tools.keyboard import make_keyboard
 @dp.message_handler(lambda message: message.text == "Дела",
                     state=States.SKILLS)
 async def tasks_handler(message):
-    """Handles switching to tasks.
+    """Handle switching to tasks.
 
     Switches the state from SKILLS to TASKS.
 
     Creates empty tasks file if it doesn't exist.
-    Checks the task mode (free or busy) by the last entry.
     Creates a keyboard (free or busy) with a task interface.
 
     """
@@ -54,11 +53,11 @@ async def tasks_handler(message):
 @dp.message_handler(lambda message: message.text == "Назад",
                     state=States.SKILLS)
 async def skills_revert_handler(message):
-    """Handles a return to the start from the skills.
+    """Handle a return to the start from the skills.
 
     Switches the state from SKILLS to START.
 
-    Creates keyboard with all the start questions in free mode.
+    Creates keyboard with all the start questions.
 
     """
     await dp.current_state(user=message.chat.id).set_state(States.START)

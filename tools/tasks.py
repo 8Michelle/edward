@@ -10,13 +10,15 @@ import pandas as pd
 
 
 def get_tasks_list(user):
-    """Reads the last 5 tasks from the .join file for ``user``.
+    """Return the last 5 tasks for ``user``.
+
+    Reads .json tasks file.
 
     Args:
         user (int): user id.
 
     Returns:
-        set: set of 5 last tasks for ``user``.
+        set: set of 5 strings.
 
     """
     filename = f'{user}_tasks.json'
@@ -36,10 +38,9 @@ def get_tasks_list(user):
 
 
 def start_task(name, user):
-    """Starts new task with ``name`` for ``user``.
+    """Start new task with ``name`` for ``user``.
 
-    Reads or creates user .json file with tasks.
-    Adds a new task and its start time.
+    Updates .json file with tasks.
 
     Args:
         name (str): name of the task to start.
@@ -68,10 +69,9 @@ def start_task(name, user):
 
 
 def end_task(user):
-    """Ends the current task for ``user``.
+    """End the current task for ``user``.
 
-    Reads user .json file with tasks, checks last task, sets end time and duration.
-    Increments duration of this task in .json file with matrix.
+    Updates .json file with matrix and file with tasks.
 
     Args:
         user (int): user id.
@@ -105,10 +105,9 @@ def end_task(user):
 
 
 def new_session(user, date):
-    """Starts new session for ``user`` with ``date``.
+    """Start new session for ``user`` with ``date``.
 
-    Reads or creates a matrix file for ``user``.
-    Adds new entry with ``date``.
+    Updates a matrix file for ``user``.
 
     Args:
         user (int): user id.
@@ -131,9 +130,9 @@ def new_session(user, date):
 
 
 def check_date(user):
-    """Reads the current date for ``user``.
+    """Return the current date for ``user``.
 
-    Reads the matrix file and takes the last entry date.
+    Reads the last date from the user matrix file.
 
     Args:
         user (int): user id.
@@ -155,15 +154,13 @@ def check_date(user):
 
 
 def prepare_tasks_doc(user):
-    """Prepares .xlsx doc from the .json matrix file for ``user`` with all tasks.
-
-    Creates pandas dataframe from a .json matrix file and loads it into a .xlsx file.
+    """Convert the .json matrix file to .xlsx doc for ``user``.
 
     Args:
         user (int): user id.
 
     Returns:
-        int: code of the answer (0 if OK, 1 if ``user`` file doesn't exist).
+        int: code of the answer (0 if OK, 1 if ``user`` matrix file doesn't exist).
 
     """
     filename_s = f'{user}_tasks_s.json'
@@ -184,13 +181,15 @@ def prepare_tasks_doc(user):
 
 
 def get_working_time(user):
-    """Reads and sums last matrix file entry for ``user``.
+    """Return today working time for ``user``.
+
+    Reads the last entry from matrix .json file.
 
     Args:
         user (int): user id.
 
     Returns:
-        list: list of strings inn format ["HH", "MM"].
+        list: list of strings in format ["HH", "MM"].
 
     """
     filename_s = f'{user}_tasks_s.json'

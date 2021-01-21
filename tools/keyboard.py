@@ -5,7 +5,7 @@ from aiogram import types
 
 
 def make_keyboard(buttons):
-    """Creates a bot keyboard with ``buttons``.
+    """Return a bot keyboard with ``buttons``.
 
     Args:
         buttons (list): list of strings.

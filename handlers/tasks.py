@@ -16,7 +16,7 @@ from tools.keyboard import make_keyboard
 @dp.message_handler(lambda message: message.text == "Начать дело",
                     state=States.TASKS)
 async def begin_task_handler(message):
-    """Handles the start of a new task.
+    """Handle the start of a new task.
 
     Switches the state from TASKS to BEGIN_TASK.
 
@@ -35,7 +35,7 @@ async def begin_task_handler(message):
 
 @dp.message_handler(state=States.BEGIN_TASK)
 async def begin_task_start_handler(message):
-    """Handles the beginning of the new task with ``message`` name.
+    """Handle the beginning of the new task with ``message`` name.
 
     Switches the state from BEGIN_TASK to TASKS.
 
@@ -54,7 +54,7 @@ async def begin_task_start_handler(message):
 @dp.message_handler(lambda message: message.text == "Назад",
                     state=States.BEGIN_TASK)
 async def begin_task_revert_handler(message):
-    """Handles a return to the tasks from the beginning a new task.
+    """Handle a return to the tasks from the beginning a new task.
 
     Switches the state from BEGIN_TASK to TASKS.
 
@@ -69,7 +69,7 @@ async def begin_task_revert_handler(message):
 @dp.message_handler(lambda message: message.text == "Завершить",
                     state=States.TASKS)
 async def end_task_handler(message):
-    """Handles the end of the current task.
+    """Handle the end of the current task.
 
     Corresponds to the TASKS state.
 
@@ -85,7 +85,7 @@ async def end_task_handler(message):
 @dp.message_handler(lambda message: message.text == "Начать новую сессию",
                     state=States.TASKS)
 async def new_session_handler(message):
-    """Handles a new session starting.
+    """Handle a new session starting.
 
     Switches the state from TASKS to NEW_SESSION.
 
@@ -103,7 +103,7 @@ async def new_session_handler(message):
 @dp.message_handler(lambda message: message.text == "Все верно",
                     state=States.NEW_SESSION)
 async def new_session_submit_handler(message):
-    """Handles session date confirmation.
+    """Handle session date confirmation.
 
     Switches the state from NEW_SESSION to TASKS.
 
@@ -122,7 +122,7 @@ async def new_session_submit_handler(message):
 
 @dp.message_handler(state=States.NEW_SESSION)
 async def new_session_date_handler(message):
-    """Handles the start of a new session with a custom date.
+    """Handle the start of a new session with a custom date.
 
     Switches the state from NEW_SESSION to TASKS.
 
@@ -141,7 +141,7 @@ async def new_session_date_handler(message):
 @dp.message_handler(lambda message: message.text == "Назад",
                     state=States.NEW_SESSION)
 async def new_session_revert_handler(message):
-    """Handles a return to the tasks from the starting a new session.
+    """Handle a return to the tasks from the starting a new session.
 
     Switches the state from NEW_SESSION to TASKS.
 
@@ -157,7 +157,7 @@ async def new_session_revert_handler(message):
 @dp.message_handler(lambda message: message.text == "Какое сегодня число?",
                     state=States.TASKS)
 async def check_date_handler(message):
-    """Answers a question about the current date.
+    """Answer a question about the current date.
 
     Corresponds to the TASKS state.
 
@@ -175,7 +175,7 @@ async def check_date_handler(message):
 @dp.message_handler(lambda message: message.text == "Получить данные",
                     state=States.TASKS)
 async def download_tasks_handler(message):
-    """Handles a data request.
+    """Handle a data request.
 
     Corresponds to the TASKS state.
 
@@ -194,7 +194,7 @@ async def download_tasks_handler(message):
 @dp.message_handler(lambda message: message.text == "Сколько я сегодня поработал?",
                     state=States.TASKS)
 async def time_today_handler(message):
-    """Handles a question of today working time.
+    """Handle a question of today working time.
 
     Corresponds to the TASKS state.
 
@@ -209,7 +209,7 @@ async def time_today_handler(message):
 @dp.message_handler(lambda message: message.text == "Назад",
                     state=States.TASKS)
 async def tasks_revert_handler(message):
-    """Handles a return to the skills from the tasks.
+    """Handle a return to the skills from the tasks.
 
     Switches the state from TASKS to SKILLS.
 
