@@ -9,6 +9,36 @@ from collections import defaultdict
 import pandas as pd
 
 
+def check_busy(user):
+    """Check task mode for ``user``, return 0 if free, 1 if busy,
+    -1 if there is task error.
+
+    Reads ``user`` task file.
+
+    Args:
+        user (int): user id.
+
+    Returns:
+        int: answer code.
+
+    """
+    filename = f'{user}_tasks.json'
+    if filename not in os.listdir():
+        return 0
+
+    else:
+        with open(filename, 'r') as f:
+            data = json.load(f)
+
+        if len(data['name']) < len(data['end']):
+            return -1
+
+        if len(data['name']) > len(data['end']):
+            return 1
+
+        return 0
+
+
 def get_tasks_list(user):
     """Return the last 5 tasks for ``user``.
 

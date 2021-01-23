@@ -7,6 +7,7 @@ starting new session, checking today working time, current date and all data.
 
 from aiogram import types
 import datetime
+import asyncio
 
 from core import dp, States, bot, KEYBOARDS
 from tools import tasks
@@ -33,24 +34,6 @@ async def begin_task_handler(message):
                          reply_markup=make_keyboard(buttons))
 
 
-@dp.message_handler(state=States.BEGIN_TASK)
-async def begin_task_start_handler(message):
-    """Handle the beginning of the new task with ``message`` name.
-
-    Switches the state from BEGIN_TASK to TASKS.
-
-    Creates busy task keyboard.
-
-    """
-    user = message.chat.id
-    tasks.start_task(message.text, user)
-    await dp.current_state(user=user).set_state(States.TASKS)
-
-    message_text = f"Сейчас вы заняты: {message.text}"
-    await message.answer(message_text,
-                         reply_markup=make_keyboard(KEYBOARDS["busy_tasks"]))
-
-
 @dp.message_handler(lambda message: message.text == "Назад",
                     state=States.BEGIN_TASK)
 async def begin_task_revert_handler(message):
@@ -64,6 +47,37 @@ async def begin_task_revert_handler(message):
     await dp.current_state(user=message.chat.id).set_state(States.TASKS)
     await message.answer("Сейчас вы ничем не заняты",
                          reply_markup=make_keyboard(KEYBOARDS["free_tasks"]))
+
+
+@dp.message_handler(state=States.BEGIN_TASK)
+async def begin_task_start_handler(message):
+    """Handle the beginning of the new task with ``message`` name.
+
+    Switches the state from BEGIN_TASK to TASKS.
+
+    Creates busy task keyboard. Starts mode checking loop.
+
+    """
+    user = message.chat.id
+    tasks.start_task(message.text, user)
+    await dp.current_state(user=user).set_state(States.TASKS)
+
+    message_text = f"Сейчас вы заняты: {message.text}"
+    await message.answer(message_text,
+                         reply_markup=make_keyboard(KEYBOARDS["busy_tasks"]))
+
+    while True:
+        await asyncio.sleep(30 * 60)
+        # TODO: check task switch before answer
+        busy = tasks.check_busy(user)
+        if busy == 1:
+            await message.answer("Вы все еще заняты?")
+
+        elif busy == 0:
+            break
+
+        else:
+            print("TASK END ERROR")
 
 
 @dp.message_handler(lambda message: message.text == "Завершить",
@@ -120,6 +134,22 @@ async def new_session_submit_handler(message):
                          reply_markup=make_keyboard(KEYBOARDS["free_tasks"]))
 
 
+@dp.message_handler(lambda message: message.text == "Назад",
+                    state=States.NEW_SESSION)
+async def new_session_revert_handler(message):
+    """Handle a return to the tasks from the starting a new session.
+
+    Switches the state from NEW_SESSION to TASKS.
+
+    Creates free task keyboard.
+
+    """
+    await dp.current_state(user=message.chat.id).set_state(States.TASKS)
+
+    await message.answer("Сейчас вы ничем не заняты.",
+                         reply_markup=make_keyboard(KEYBOARDS["free_tasks"]))
+
+
 @dp.message_handler(state=States.NEW_SESSION)
 async def new_session_date_handler(message):
     """Handle the start of a new session with a custom date.
@@ -135,22 +165,6 @@ async def new_session_date_handler(message):
     tasks.new_session(user=user, date=message.text.replace('.', '-'))
 
     await message.answer(f"Начата новая сессия {message.text}. Сейчас вы ничем не заняты.",
-                         reply_markup=make_keyboard(KEYBOARDS["free_tasks"]))
-
-
-@dp.message_handler(lambda message: message.text == "Назад",
-                    state=States.NEW_SESSION)
-async def new_session_revert_handler(message):
-    """Handle a return to the tasks from the starting a new session.
-
-    Switches the state from NEW_SESSION to TASKS.
-
-    Creates free task keyboard.
-
-    """
-    await dp.current_state(user=message.chat.id).set_state(States.TASKS)
-
-    await message.answer("Сейчас вы ничем не заняты.",
                          reply_markup=make_keyboard(KEYBOARDS["free_tasks"]))
 
 

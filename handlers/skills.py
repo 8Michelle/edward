@@ -37,7 +37,7 @@ async def tasks_handler(message):
     else:
         with open(filename, 'r') as f:
             data = json.load(f)
-            print("create data")
+            # print("create data")
 
     if len(data['name']) == len(data['end']):
         message_text = "Сейчас вы ничем не заняты."
