@@ -9,14 +9,15 @@ from collections import defaultdict
 import pandas as pd
 
 
-def check_busy(user):
-    """Check task mode for ``user``, return 0 if free, 1 if busy,
+def check_busy(user, task_id):
+    """Check task mode for ``user`` and ``task_id``, return 0 if free, 1 if busy,
     -1 if there is task error.
 
     Reads ``user`` task file.
 
     Args:
         user (int): user id.
+        task_id (int): checking task id.
 
     Returns:
         int: answer code.
@@ -33,12 +34,15 @@ def check_busy(user):
         if len(data['name']) < len(data['end']):
             return -1
 
-        if len(data['name']) > len(data['end']):
+        # if len(data['name']) > len(data['end']):
+        # check that task with ``task_id`` is not closed.
+        if len(data["end"]) == task_id:
             return 1
 
         return 0
 
 
+# TODO: get n tasks.
 def get_tasks_list(user):
     """Return the last 5 tasks for ``user``.
 
@@ -76,6 +80,9 @@ def start_task(name, user):
         name (str): name of the task to start.
         user (int): user id.
 
+    Returns:
+        int: task id.
+
     """
     filename = f'{user}_tasks.json'
     if filename not in os.listdir():
@@ -90,12 +97,15 @@ def start_task(name, user):
         with open(filename, 'r') as f:
             data = json.load(f)
 
+    task_id = len(data["name"])
     data['name'].append(name)
     timestamp = time.mktime(datetime.datetime.now().timetuple())
     data['start'].append(timestamp)
 
     with open(filename, 'w') as f:
         json.dump(data, f)
+
+    return task_id
 
 
 def end_task(user):
