@@ -59,7 +59,7 @@ async def begin_task_start_handler(message):
 
     """
     user = message.chat.id
-    tasks.start_task(message.text, user)
+    task_id = tasks.start_task(message.text, user)
     await dp.current_state(user=user).set_state(States.TASKS)
 
     message_text = f"Сейчас вы заняты: {message.text}"
@@ -68,12 +68,14 @@ async def begin_task_start_handler(message):
 
     while True:
         await asyncio.sleep(30 * 60)
-        # TODO: check task switch before answer
-        busy = tasks.check_busy(user)
+        # await asyncio.sleep(20)
+
+        busy = tasks.check_busy(user, task_id)
         if busy == 1:
             await message.answer("Вы все еще заняты?")
 
         elif busy == 0:
+            print("end of task")
             break
 
         else:
