@@ -259,9 +259,13 @@ def add_custom_task(user, task, date, time_delta):
         data_s = json.load(f)
 
     if date not in data_s:
-        data_s[date] = defaultdict(int)
+        data_s[date] = {task: time_delta}
 
-    data_s[date][task] += time_delta
+    elif task not in data_s[date]:
+        data_s[date][task] = time_delta
+
+    else:
+        data_s[date][task] += time_delta
 
     with open(filename_s, "w") as f:
         json.dump(data_s, f)
