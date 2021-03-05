@@ -34,8 +34,6 @@ def check_busy(user, task_id):
         if len(data['name']) < len(data['end']):
             return -1
 
-        # if len(data['name']) > len(data['end']):
-        # check that task with ``task_id`` is not closed.
         if len(data["end"]) == task_id:
             return 1
 
@@ -124,9 +122,9 @@ def end_task(user):
         data = json.load(f)
 
     name = data["name"][-1]
-    time_int = timestamp - data['start'][-1]
+    time_delta = timestamp - data['start'][-1]
     data['end'].append(timestamp)
-    data['time'].append(time_int)
+    data['time'].append(time_delta)
     with open(filename, 'w') as f:
         json.dump(data, f)
 
@@ -137,9 +135,9 @@ def end_task(user):
     date = max(data_s)
 
     if name in data_s[date]:
-        data_s[date][name] += time_int
+        data_s[date][name] += time_delta
     else:
-        data_s[date][name] = time_int
+        data_s[date][name] = time_delta
     with open(filename_s, 'w') as f:
         json.dump(data_s, f)
 
@@ -206,6 +204,7 @@ def prepare_tasks_doc(user):
     filename_s = f'{user}_tasks_s.json'
     if filename_s not in os.listdir():
         return 1
+
     with open(filename_s, 'r') as f:
         data_s = json.load(f)
 
@@ -214,12 +213,13 @@ def prepare_tasks_doc(user):
     for column in df.columns:
         df[column] = pd.to_datetime(df[column], unit='s')
 
-    df -= pd.to_datetime(0)  # Reduction from UNIX time to duration.
+    df -= pd.to_datetime(0)
     df.to_excel(f'{user}_tasks.xlsx')
 
     return 0
 
 
+# TODO: simplify using only the last row.
 def get_working_time(user):
     """Return today working time for ``user``.
 
@@ -242,10 +242,26 @@ def get_working_time(user):
 
     df['sum'] = df.sum(axis=1)
 
+    # correct calculation of the time delta
     for column in df.columns:
         df[column] = pd.to_datetime(df[column], unit='s')
     df -= pd.to_datetime(0)
+
     df.sort_index()
 
     # Sums all columns in the last row, split timedelta like string and get HH and MM.
     return str(df.iloc[-1, :]['sum']).split()[-1].split(':')[:-1]
+
+
+def add_custom_task(user, task, date, time_delta):
+    filename_s = f'{user}_tasks_s.json'
+    with open(filename_s, "r") as f:
+        data_s = json.load(f)
+
+    if date not in data_s:
+        data_s[date] = defaultdict(int)
+
+    data_s[date][task] += time_delta
+
+    with open(filename_s, "w") as f:
+        json.dump(data_s, f)

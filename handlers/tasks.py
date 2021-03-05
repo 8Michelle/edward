@@ -27,10 +27,12 @@ async def begin_task_handler(message):
     user = message.chat.id
     await dp.current_state(user=user).set_state(States.BEGIN_TASK)
 
+    date = tasks.check_date(user)
+
     buttons = list(tasks.get_tasks_list(user))
     buttons.append("Назад")
 
-    await message.answer("Чем займетесь?",
+    await message.answer(f"Текущая дата {date.replace('-', '.')}. Чем займетесь?",
                          reply_markup=make_keyboard(buttons))
 
 
@@ -68,7 +70,6 @@ async def begin_task_start_handler(message):
 
     while True:
         await asyncio.sleep(30 * 60)
-        # await asyncio.sleep(20)
 
         busy = tasks.check_busy(user, task_id)
         if busy == 1:
@@ -78,6 +79,7 @@ async def begin_task_start_handler(message):
             print("end of task")
             break
 
+        # TODO: add exception for task end error - to logger
         else:
             print("TASK END ERROR")
 
@@ -98,6 +100,40 @@ async def end_task_handler(message):
                          reply_markup=make_keyboard(KEYBOARDS["free_tasks"]))
 
 
+@dp.message_handler(lambda message: message.text == "Добавить дело",
+                    state=States.TASKS)
+async def custom_task_handler(message):
+
+    user = message.chat.id
+    await dp.current_state(user=user).set_state(States.ADD_CUSTOM_TASK)
+
+    await message.answer("Что и в какую дату добавить?",
+                         reply_markup=make_keyboard(["Назад"]))
+
+
+@dp.message_handler(lambda message: message.text == "Назад",
+                    state=States.ADD_CUSTOM_TASK)
+async def select_custom_task_handler(message):
+    user = message.chat.id
+    await dp.current_state(user=user).set_state(States.TASKS)
+
+    await message.answer("Сейчас вы ничем не заняты",
+                         reply_markup=make_keyboard(KEYBOARDS["free_tasks"]))
+
+
+@dp.message_handler(state=States.ADD_CUSTOM_TASK)
+async def select_custom_task_handler(message):
+
+    user = message.chat.id
+    await dp.current_state(user=user).set_state(States.TASKS)
+
+    task, date, time_delta = message.text.split()
+    tasks.add_custom_task(user, task, date.replace('.', '-'), float(time_delta) * 3600)
+
+    await message.answer(f"Добавлено {task} продолжительностью {time_delta} {date}",
+                         reply_markup=make_keyboard(KEYBOARDS["free_tasks"]))
+
+
 @dp.message_handler(lambda message: message.text == "Начать новую сессию",
                     state=States.TASKS)
 async def new_session_handler(message):
@@ -111,8 +147,9 @@ async def new_session_handler(message):
     user = message.chat.id
     await dp.current_state(user=user).set_state(States.NEW_SESSION)
 
-    date = datetime.date.today().isoformat()
-    await message.answer(f"Новая дата {date.replace('-', '.')}?",
+    date = tasks.check_date(user=user)
+    new_date = datetime.date.today().isoformat()
+    await message.answer(f"Текущая дата {date.replace('-', '.')}. Новая дата {new_date.replace('-', '.')}?",
                          reply_markup=make_keyboard(KEYBOARDS["new_session"]))
 
 
@@ -182,10 +219,9 @@ async def check_date_handler(message):
     """
     user = message.chat.id
     date = tasks.check_date(user=user)
-    message_text = f"Активная дата: {date}"
-    # TODO: delete reply_markup
-    await message.answer(message_text,
-                         reply_markup=make_keyboard(KEYBOARDS["free_tasks"]))
+    message_text = f"Активная дата: {date.replace('-', '.')}"
+
+    await message.answer(message_text)
 
 
 @dp.message_handler(lambda message: message.text == "Получить данные",

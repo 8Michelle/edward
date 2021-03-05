@@ -27,6 +27,7 @@ class States(StatesGroup):
     TASKS = State()
     BEGIN_TASK = State()
     NEW_SESSION = State()
+    ADD_CUSTOM_TASK = State()
 
 
 SKILLS = ['Дела']
@@ -38,7 +39,7 @@ KEYBOARDS = {
     "skills": SKILLS + ["Назад"],
 
     "free_tasks": ["Начать дело", "Какое сегодня число?",
-                   "Начать новую сессию", "Сколько я сегодня поработал?",
+                   "Начать новую сессию", "Добавить дело", "Сколько я сегодня поработал?",
                    "Получить данные", "Назад"],
 
     "busy_tasks": ["Завершить", "Назад"],
